@@ -2,7 +2,7 @@
 #  OmniFocusCLI v.1.0.1
 #  Created by Donald Southard aka @binaryghost on 2011-05-14
 
-#Declaration of my random-ass variables
+#Declaration of my variables
 d=86400 #initialize d variable equal to number of seconds in 1 day.
 my_context_check=0 #initialize my_context variable
 start_check=0 #initialize start_check variable
