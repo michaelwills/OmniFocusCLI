@@ -1,1 +1,0 @@
-/Users/Don/Dropbox/Personal/Mac App Backups/Alfred/extensions/scripts/omnifocus/OmniFocusCLI.sh
