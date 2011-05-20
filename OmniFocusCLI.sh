@@ -1,16 +1,9 @@
 #!/bin/sh 
 #  OmniFocusCLI v.1.0.1
-# 
-#  CHANGELOG:
-#	-Fixed a bug with Today start dates
+#  Created by Donald Southard aka @binaryghost on 2011-05-14
 #
-#  NOT AFFILIATED WITH THE AWESOME OMNIGROUP ...and please don't sue me over the name :)
-#  Created by Donald Southard aka @binaryghost on 2011-05-14.
-#  Give credit where credit is due
-#
-#  To-do: Code cleanup and comment, I know its a mess :(
-#
-#//
+
+
 #Declaration of my random-ass variables
 d=86400 #initialize d variable equal to number of seconds in 1 day.
 my_context_check=0 #initialize my_context variable
@@ -40,7 +33,7 @@ echo "---------------------"
 #Create task name, basically echo the input and strip off the junk. 
 #If someone has a better way, hit me up on twitter @binaryghost PLEASE!
 #I tried to have sed read from my arrays but no luck with that...
-task_name=`echo $@ | sed 's/today//g' | sed 's/tomorrow//g' | sed 's/[[:<:]]tom[[:>:]]//g' | sed 's/[^0-9]\/[0-9]//' | sed 's/Monday//g' | sed 's/monday//g' | sed 's/[[:<:]]Mon[[:>:]]//g' | sed 's/[[:<:]]mon[[:>:]]//g' | sed 's/Tuesday//g' | sed 's/tuesday//g' | sed 's/Tues//g' | sed 's/tues//g' | sed 's/Wednesday//g' | sed 's/wednesday//g' | sed 's/[[:<:]]Wed[[:>:]]//g' | sed 's/[[:<:]]wed[[:>:]]//g' | sed 's/Thursday//g' | sed 's/thursday//g' | sed 's/Thurs//g' | sed 's/thurs//g' | sed 's/Friday//g' | sed 's/friday//g' | sed 's/[[:<:]]Fri[[:>:]]//g' | sed 's/[[:<:]]fri[[:>:]]//g' | sed 's/Saturday//g' | sed 's/saturday//g' | sed 's/[[:<:]]Sat[[:>:]]//g' | sed 's/[[:<:]]sat[[:>:]]//g' | sed 's/Sunday//g' | sed 's/sunday//g' | sed 's/[[:<:]]Sun[[:>:]]//g' | sed 's/[[:<:]]sun[[:>:]]//g' | sed 's/d://' | sed 's/January//g' | sed 's/january//g' | sed 's/Jan//g' | sed 's/jan//g' | sed 's/February//g' | sed 's/february//g' | sed 's/Feb//g' | sed 's/feb//g' | sed 's/[[:<:]]March[[:>:]]//g' | sed 's/[[:<:]]march[[:>:]]//g' | sed 's/[[:<:]]Mar[[:>:]]//g' | sed 's/[[:<:]]mar[[:>:]]//g' | sed 's/April//g' | sed 's/april//g' | sed 's/[[:<:]]May[[:>:]]//g' | sed 's/[[:<:]]may[[:>:]]//g' | sed 's/June//g' | sed 's/june//g' | sed 's/[[:<:]]Jun[[:>:]]//g' | sed 's/[[:<:]]jun[[:>:]]//g' | sed 's/July//g' | sed 's/july//g' | sed 's/[[:<:]]Jul[[:>:]]//g' | sed 's/[[:<:]]jul[[:>:]]//g' | sed 's/August//g' | sed 's/august//g' | sed 's/Aug//' | sed 's/aug//' | sed 's/September//' | sed 's/september//g' | sed 's/Sept//g' | sed 's/sept//g' | sed 's/October//g' | sed 's/october//g' | sed 's/[[:<:]]Oct[[:>:]]//g' | sed 's/[[:<:]]oct[[:>:]]//g' | sed 's/November//g' | sed 's/november//g' | sed 's/[[:<:]]Nov[[:>:]]//g' | sed 's/[[:<:]]nov[[:>:]]//g' | sed 's/December//g' | sed 's/december//g' | sed 's/[[:<:]]Dec[[:>:]]//g' | sed 's/[[:<:]]dec[[:>:]]//g' | sed 's/[0-9][A-Z]*[a-z]*//g' | sed 's/\@[A-Z]*[a-z]*//g' | sed 's/://g' | sed 's/\///g'`
+task_name=`echo $@ | sed 's/today//g' | sed 's/tomorrow//g' | sed 's/[[:<:]]tom[[:>:]]//g' | sed 's/[^0-9]\/[0-9]//' | sed 's/Monday//g' | sed 's/monday//g' | sed 's/[[:<:]]Mon[[:>:]]//g' | sed 's/[[:<:]]mon[[:>:]]//g' | sed 's/Tuesday//g' | sed 's/tuesday//g' | sed 's/Tues//g' | sed 's/tues//g' | sed 's/Wednesday//g' | sed 's/wednesday//g' | sed 's/[[:<:]]Wed[[:>:]]//g' | sed 's/[[:<:]]wed[[:>:]]//g' | sed 's/Thursday//g' | sed 's/thursday//g' | sed 's/Thurs//g' | sed 's/thurs//g' | sed 's/Friday//g' | sed 's/friday//g' | sed 's/[[:<:]]Fri[[:>:]]//g' | sed 's/[[:<:]]fri[[:>:]]//g' | sed 's/Saturday//g' | sed 's/saturday//g' | sed 's/[[:<:]]Sat[[:>:]]//g' | sed 's/[[:<:]]sat[[:>:]]//g' | sed 's/Sunday//g' | sed 's/sunday//g' | sed 's/[[:<:]]Sun[[:>:]]//g' | sed 's/[[:<:]]sun[[:>:]]//g' | sed 's/d://' | sed 's/January//g' | sed 's/january//g' | sed 's/Jan//g' | sed 's/jan//g' | sed 's/February//g' | sed 's/february//g' | sed 's/Feb//g' | sed 's/feb//g' | sed 's/[[:<:]]March[[:>:]]//g' | sed 's/[[:<:]]march[[:>:]]//g' | sed 's/[[:<:]]Mar[[:>:]]//g' | sed 's/[[:<:]]mar[[:>:]]//g' | sed 's/April//g' | sed 's/april//g' | sed 's/[[:<:]]May[[:>:]]//g' | sed 's/[[:<:]]may[[:>:]]//g' | sed 's/June//g' | sed 's/june//g' | sed 's/[[:<:]]Jun[[:>:]]//g' | sed 's/[[:<:]]jun[[:>:]]//g' | sed 's/July//g' | sed 's/july//g' | sed 's/[[:<:]]Jul[[:>:]]//g' | sed 's/[[:<:]]jul[[:>:]]//g' | sed 's/August//g' | sed 's/august//g' | sed 's/Aug//' | sed 's/aug//' | sed 's/September//' | sed 's/september//g' | sed 's/Sept//g' | sed 's/sept//g' | sed 's/October//g' | sed 's/october//g' | sed 's/[[:<:]]Oct[[:>:]]//g' | sed 's/[[:<:]]oct[[:>:]]//g' | sed 's/November//g' | sed 's/november//g' | sed 's/[[:<:]]Nov[[:>:]]//g' | sed 's/[[:<:]]nov[[:>:]]//g' | sed 's/December//g' | sed 's/december//g' | sed 's/[[:<:]]Dec[[:>:]]//g' | sed 's/[[:<:]]dec[[:>:]]//g' | sed 's/[[:<:]]Noon[[:>:]]//g' | sed 's/[[:<:]]noon[[:>:]]//g' | sed 's/[0-9][A-Z]*[a-z]*//g' | sed 's/\@[A-Z]*[a-z]*//g' | sed 's/://g' | sed 's/\///g'`
 
 echo "Task name: "$task_name
 
@@ -250,6 +243,7 @@ done
 #Find time #(am|pm) format
 for i in "$@"
 do
+	noon_formatted=`echo $i | tr A-Z a-z`
 	if [[ $i =~ ^[0-9]am ]] ||  [[ $i =~ ^[0-9][0-9]am ]]; then
 		time_value=`echo $i | sed 's/am//'`
 		start_check=1
@@ -269,6 +263,9 @@ do
 		if [[ $time_value = 24 ]]; then
 			time_value=12
 		fi
+		start_check=1
+	elif [[ $noon_formatted =~ "noon" ]]; then
+		time_value=12
 		start_check=1
 	fi
 done
