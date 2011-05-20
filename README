@@ -1,0 +1,14 @@
+NAME: OmniFocusCLI
+VERSION: 1.0.1
+AUTHOR:	Don Southard aka. @binaryghost
+
+CHANGELOG:
+	[ 5/20/2011 03:02:41PM ]
+	-Fixed a bug with Today start dates
+	-5/20/2011 02:28:28PM - added "Noon"/"noon" support
+
+
+For more information, please visit http://www.dirtdon.com/?p=963
+
+To submit bugs or feature requests please email support@dirtdon.com
+
