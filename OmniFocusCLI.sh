@@ -16,7 +16,7 @@ day_mon=`date +%d`	#find current day of the month
 day_week=`date +%w` #find current day of the week
 
 
-#Define my time/code saving arrays :)
+#Define my time/code saving arrays
 Months=(31 28 31 30 31 30 31 31 30 31 30 31)
 Mon_names=('january' 'february' 'march' 'april' 'may' 'june' 'july' 'august' 'september' 'october' 'november' 'december')
 Abbrv_Mon_names=('jan' 'feb' 'mar' 'apr' 'may' 'jun' 'july' 'aug' 'sept' 'oct' 'nov' 'dec')
