@@ -238,7 +238,7 @@ do
 done
 
 
-#Find time #(am|pm) format
+#Find time #(am|pm) format and check for "noon"
 for i in "$@"
 do
 	noon_formatted=`echo $i | tr A-Z a-z`
@@ -294,7 +294,6 @@ if [ -z $my_context ]
 then
 	my_context_check=1
 fi
-#End of finding context
 		
 echo "======================"
 
