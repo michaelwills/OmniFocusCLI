@@ -4,8 +4,8 @@ AUTHOR:	Don Southard aka. @binaryghost
 
 CHANGELOG:
 	[ 5/20/2011 03:02:41PM ]
-	-Fixed a bug with Today start dates
-	-5/20/2011 02:28:28PM - added "Noon"/"noon" support
+	-Fixed a bug with blank start dates setting "Today" value
+	-Added "Noon"/"noon" support
 
 
 For more information, please visit http://www.dirtdon.com/?p=963
