@@ -1,8 +1,14 @@
 #!/bin/sh 
-#  OmniFocusCLI v.1.0.1
+#  OmniFocusCLI v.1.0.2
 #  Created by Donald Southard aka @binaryghost on 2011-05-14
 
 #Declaration of my variables
+iniCheck=`echo "$*"`
+if [ -z $iniCheck ]
+then
+	echo "No task detected, please try again."
+	exit
+fi
 d=86400 #initialize d variable equal to number of seconds in 1 day.
 my_context_check=0 #initialize my_context variable
 start_check=0 #initialize start_check variable
