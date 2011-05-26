@@ -1,5 +1,5 @@
 #!/bin/sh 
-#  OmniFocusCLI v.1.0.2
+#  OmniFocusCLI v.1.1
 #  Created by Donald Southard aka @binaryghost on 2011-05-14
 
 #Declaration of my variables
@@ -10,9 +10,16 @@ then
 	exit
 fi
 d=86400 #initialize d variable equal to number of seconds in 1 day.
-my_context_check=0 #initialize my_context variable
+my_context_check=1 #initialize my_context variable
+noon_check=0 #initialize noon_check variable
+weekday_check=0 #initialize weekday_check variable
+monthname_check=0 #initialize month_check variable
 start_check=0 #initialize start_check variable
 time_check=0 #initialize time_check variable
+mon_day_check=0
+num_date_check=0
+due_check=0
+abbrv_date_check=0
 today=0
 tomorrow=0
 hr=12
@@ -25,7 +32,7 @@ day_week=`date +%w` #find current day of the week
 #Define my time/code saving arrays
 Months=(31 28 31 30 31 30 31 31 30 31 30 31)
 Mon_names=('january' 'february' 'march' 'april' 'may' 'june' 'july' 'august' 'september' 'october' 'november' 'december')
-Abbrv_Mon_names=('jan' 'feb' 'mar' 'apr' 'may' 'jun' 'july' 'aug' 'sept' 'oct' 'nov' 'dec')
+Abbrv_Mon_names=('jan' 'feb' 'mar' 'apr' 'may' 'jun' 'jul' 'aug' 'sept' 'oct' 'nov' 'dec')
 Week_days=('sunday' 'monday' 'tuesday' 'wednesday' 'thursday' 'friday' 'saturday')
 Abbrv_days=('sun' 'mon' 'tues' 'wed' 'thurs' 'fri' 'sat' 'sun')
 
@@ -34,19 +41,14 @@ echo "---------------------"
 echo "::DIAGNOSTIC REPORT::"
 echo "---------------------"
 
-#Create task name, basically echo the input and strip off the junk. 
-#If someone has a better way, hit me up on twitter @binaryghost PLEASE!
-#I tried to have sed read from my arrays but no luck with that...
-task_name=`echo $@ | sed 's/today//g' | sed 's/tomorrow//g' | sed 's/[[:<:]]tom[[:>:]]//g' | sed 's/[^0-9]\/[0-9]//' | sed 's/Monday//g' | sed 's/monday//g' | sed 's/[[:<:]]Mon[[:>:]]//g' | sed 's/[[:<:]]mon[[:>:]]//g' | sed 's/Tuesday//g' | sed 's/tuesday//g' | sed 's/Tues//g' | sed 's/tues//g' | sed 's/Wednesday//g' | sed 's/wednesday//g' | sed 's/[[:<:]]Wed[[:>:]]//g' | sed 's/[[:<:]]wed[[:>:]]//g' | sed 's/Thursday//g' | sed 's/thursday//g' | sed 's/Thurs//g' | sed 's/thurs//g' | sed 's/Friday//g' | sed 's/friday//g' | sed 's/[[:<:]]Fri[[:>:]]//g' | sed 's/[[:<:]]fri[[:>:]]//g' | sed 's/Saturday//g' | sed 's/saturday//g' | sed 's/[[:<:]]Sat[[:>:]]//g' | sed 's/[[:<:]]sat[[:>:]]//g' | sed 's/Sunday//g' | sed 's/sunday//g' | sed 's/[[:<:]]Sun[[:>:]]//g' | sed 's/[[:<:]]sun[[:>:]]//g' | sed 's/d://' | sed 's/January//g' | sed 's/january//g' | sed 's/Jan//g' | sed 's/jan//g' | sed 's/February//g' | sed 's/february//g' | sed 's/Feb//g' | sed 's/feb//g' | sed 's/[[:<:]]March[[:>:]]//g' | sed 's/[[:<:]]march[[:>:]]//g' | sed 's/[[:<:]]Mar[[:>:]]//g' | sed 's/[[:<:]]mar[[:>:]]//g' | sed 's/April//g' | sed 's/april//g' | sed 's/[[:<:]]May[[:>:]]//g' | sed 's/[[:<:]]may[[:>:]]//g' | sed 's/June//g' | sed 's/june//g' | sed 's/[[:<:]]Jun[[:>:]]//g' | sed 's/[[:<:]]jun[[:>:]]//g' | sed 's/July//g' | sed 's/july//g' | sed 's/[[:<:]]Jul[[:>:]]//g' | sed 's/[[:<:]]jul[[:>:]]//g' | sed 's/August//g' | sed 's/august//g' | sed 's/Aug//' | sed 's/aug//' | sed 's/September//' | sed 's/september//g' | sed 's/Sept//g' | sed 's/sept//g' | sed 's/October//g' | sed 's/october//g' | sed 's/[[:<:]]Oct[[:>:]]//g' | sed 's/[[:<:]]oct[[:>:]]//g' | sed 's/November//g' | sed 's/november//g' | sed 's/[[:<:]]Nov[[:>:]]//g' | sed 's/[[:<:]]nov[[:>:]]//g' | sed 's/December//g' | sed 's/december//g' | sed 's/[[:<:]]Dec[[:>:]]//g' | sed 's/[[:<:]]dec[[:>:]]//g' | sed 's/[[:<:]]Noon[[:>:]]//g' | sed 's/[[:<:]]noon[[:>:]]//g' | sed 's/[0-9][A-Z]*[a-z]*//g' | sed 's/\@[A-Z]*[a-z]*//g' | sed 's/://g' | sed 's/\///g'`
-
-echo "Task name: "$task_name
-
 
 #Funtions for checking for a start date
 #First one checks for a start date in a #d format
 for i in "$@"
 do
 	if [[ $i =~ ^[0-9]d ]] || [[ $i =~ ^[0-9][0-9]d ]]; then
+		abbrv_date_check=1
+		abbrv_date_taskname=$i
 		num_days=`echo $@ | tr -dc '[0-9]'`
 		temp_days=`echo ""$num_days"*$d" | bc`
 	fi
@@ -62,6 +64,8 @@ fi
 for i in "$@"
 do
 	if [[ $i =~ ^[0-9]w ]] || [[ $i =~ ^[0-9][0-9]w ]]; then
+		abbrv_date_check=1
+		abbrv_date_taskname=$i
 		num_weeks=`echo $@ | tr -dc '[0-9]'`
 		temp_weeks=`echo "("$num_weeks"*7)*$d" | bc`
 	fi
@@ -76,6 +80,8 @@ fi
 for i in "$@"
 do
 	if [[ $i =~ ^[0-9]m ]] || [[ $i =~ ^[0-9][0-9]m ]]; then
+		abbrv_date_check=1
+		abbrv_date_taskname=$i
 		num_monthz=`echo $@ | tr -dc '[0-9]'`
 		temp_monthz=`echo "("$num_monthz"*31)*$d" | bc`
 	fi
@@ -97,6 +103,7 @@ echo "Days until started: "$num_days
 for i in "$@"
 do
 	if [[ $i =~ ^[0-9]/[0-9] ]] || [[ $i =~ ^[0-9][0-9]/[0-9] ]] || [[ $i =~ ^[0-9]/[0-9[0-9]] ]] || [[ $i =~ ^[0-9][0-9]/[0-9][0-9] ]]; then
+		num_date_check=1
 		start_value_mon=`echo $i | sed 's/\/[0-9]*//'`
 		start_value_day=`echo $i | sed 's/[0-9]*\///'`
 		echo "Start value (month): "$start_value_mon
@@ -115,14 +122,11 @@ do
 			(( i++ ))
 			done		
 			month=`echo "("$month"+1)" | bc`
-			echo "Numerical value of Month: "$month_counter
 			array_var="${Months[$month]}"
-			echo "Number of Array item: "$array_var
 			i=1
 			((x++))
 		done
 		start_check=1
-		echo ${Months[$start_value_mon]}
 			if [[ ${Months[("$start_value_mon"-1)]} -eq 31 ]] 
 			then
 				day_counter=`echo "("$day_counter"-1)" | bc`
@@ -147,6 +151,8 @@ do
 	    mon_input=`echo ${Mon_names[${m}]}`
 		abbrv_mon_input=`echo ${Abbrv_Mon_names[${m}]}`
 		if [[ $mon_formatted = "$mon_input" ]] || [[ $mon_formatted = "$abbrv_mon_input" ]]; then
+			monthname_check=1
+			monthname_taskname=$i
 			month=`date +%m`
 			my_mon=`echo "("$m"+1)" | bc`
 			month_counter_max=$m
@@ -181,6 +187,8 @@ done
 for i in "$@"
 do
 	if [[ $i =~ [0-9]st ]] || [[ $i =~ [0-9]nd ]] || [[ $i =~ [0-9]rd ]] || [[ $i =~ [0-9]th ]] || [[ $i =~ [0-9][0-9]st ]] || [[ $i =~ [0-9][0-9]nd ]] || [[ $i =~ [0-9][0-9]rd ]] || [[ $i =~ [0-9][0-9]th ]]; then
+		mon_day_check=1
+		mon_day_taskname=$i
 		start_value_day=`echo $i | sed 's/st*//' | sed 's/nd*//' | sed 's/rd*//' | sed 's/th*//'`
 		echo "Start value (day): "$start_value_day
 		result_day=`echo "("$start_value_day"-1)" | bc`
@@ -197,6 +205,8 @@ echo "Start date result (#days): "$result_day
 #This is the only format for due dates right now, who cares though because you should be using
 #START DATES!!! and a DAILY REVIEW!!! if not you need to GTD YO SHIT PLAYA!!
 due_num_days=`echo $* | sed -n 's/.*d:\(.*\)d.*/\1/p'`
+due_check=1
+due_taskname=`echo "d:"$due_num_days"d"`
 echo "days until due: "$due_num_days
 
 if [ -z $due_num_days ]
@@ -205,23 +215,29 @@ then
 fi
 ddays=`echo ""$due_num_days"*$d" | bc`
 
+#Check for a start date of Today
 for i in "$@"
 do
-	if [ $i = "today" ]; then
+	today_formatted=`echo $i | tr A-Z a-z`
+	if [ $today_formatted = "today" ]; then
+		today_taskname=$i
 		today=1
 	fi
 done
 echo "Starts today? (0/1): "$today
 
+#Check for a start date of Tomorrow
 for i in "$@"
 do
 	tom_formatted=`echo $i | tr A-Z a-z`
 	if [[ $tom_formatted = "tomorrow" ]] || [[ $i = "tom" ]]; then
+		tom_taskname=$i
 		tomorrow=1
 	fi
 done
-		echo "Starts tomorrow? (0/1): "$tomorrow
+echo "Starts tomorrow? (0/1): "$tomorrow
 
+#check for week day name as start value
 for i in "$@"
 do
 	day_formatted=`echo $i | tr A-Z a-z`
@@ -230,6 +246,8 @@ do
 		abbrv_day_input=`echo ${Abbrv_days[${w}]}`
 		#My lovely wife came up with this elegant solution below:
 		if [[ $day_formatted = "$week_day_input" ]] || [[ $day_formatted = "$abbrv_day_input" ]]; then
+			weekday_check=1
+			weekday_taskname=$i
 			if [[ $w -ge $day_week ]]; then
 				week_day_value=`echo ""$w"-$day_week" | bc`
 				echo "Week day value passed: "$week_day_value
@@ -249,12 +267,18 @@ for i in "$@"
 do
 	noon_formatted=`echo $i | tr A-Z a-z`
 	if [[ $i =~ ^[0-9]am ]] ||  [[ $i =~ ^[0-9][0-9]am ]]; then
+		time_check=1
+		time_taskname=$i
 		time_value=`echo $i | sed 's/am//'`
 		start_check=1
 	elif [[ $i =~ ^[0-9]:[0-9][0-9]am ]] ||  [[ $i =~ ^[0-9][0-9]:[0-9][0-9]am ]]; then
+		time_check=1
+		time_taskname=$i
 		time_value=`echo $i | awk 'BEGIN { FS = ":" } ; { print $1}' | tr -dc '[0-9]'`
 		start_check=1
 	elif [[ $i =~ ^[0-9]pm ]] || [[ $i =~ ^[0-9][0-9]pm ]]; then
+		time_check=1
+		time_taskname=$i
 		time_value_pm=`echo $i | sed 's/pm//'`
 		time_value=`echo ""$time_value_pm"+$hr" | bc`
 		if [[ $time_value = 24 ]]; then
@@ -262,6 +286,8 @@ do
 		fi
 		start_check=1
 	elif [[ $i =~ ^[0-9]:[0-9][0-9]pm ]] ||  [[ $i =~ ^[0-9][0-9]:[0-9][0-9]pm ]]; then
+		time_check=1
+		time_taskname=$i
 		time_value_pm=`echo $i | awk 'BEGIN { FS = ":" } ; { print $1}' | tr -dc '[0-9]'`
 		time_value=`echo ""$time_value_pm"+$hr" | bc`
 		if [[ $time_value = 24 ]]; then
@@ -270,6 +296,8 @@ do
 		start_check=1
 	elif [[ $noon_formatted =~ "noon" ]]; then
 		time_value=12
+		noon_check=1
+		noon_taskname=$i
 		start_check=1
 	fi
 done
@@ -286,21 +314,79 @@ do
 done
 echo "Start date (minutes): "$minutes
 
-#Find the context of the task.
+#READ CONTEXTS FROM DB -- WORK IN PROGRESS
+declare -a contextArray
+if [ ! -d ~/Library/Caches/com.omnigroup.OmniFocus.MacAppStore/ ]; then
+	contextArray=(`sqlite3 ~/Library/Caches/com.omnigroup.OmniFocus/OmniFocusDatabase2 'select name from context where parent is null;'`)
+else
+	contextArray=(`sqlite3 ~/Library/Caches/com.omnigroup.OmniFocus.MacAppStore/OmniFocusDatabase2 'select name from context where parent is null;'`)
+fi
+context_total=`echo ${#contextArray[*]}`
 for i in "$@"
 do
-	if [[ $i =~ ^@ ]]; then
-		my_context=`echo $i`
-	else
-		my_context=`echo $i | sed -n 's/.*c:\(.*\).*/\1/p'`
-	fi
+		for (( c=0;c<$context_total;c++ )); do
+		if [[ $i = ${contextArray[$c]} ]]; then
+			my_context=$i
+		fi
+	done
 done
+
+echo "Context Check (0/1): "$my_context_check
 echo "Context used: "$my_context
 if [ -z $my_context ]
 then
-	my_context_check=1
+	my_context_check=0
 fi
-		
+
+#Rebuilt Code to construct the task name
+echo "Raw task name: "$task_name
+task_name=`echo $@`
+
+if [[ $my_context_check -gt 0 ]]; then
+	task_name=`echo $task_name | sed "s/$my_context//g"`
+fi
+
+if [[ $noon_check -gt 0 ]]; then
+	task_name=`echo $task_name | sed "s/$noon_taskname//g"`
+fi
+
+if [[ $weekday_check -gt 0 ]]; then
+	task_name=`echo $task_name | sed "s/$weekday_taskname//g"`
+fi
+
+if [[ $monthname_check -gt 0 ]]; then
+	task_name=`echo $task_name | sed "s/$monthname_taskname//g"`
+fi
+
+if [[ $tomorrow -gt 0 ]]; then
+	task_name=`echo $task_name | sed "s/$tom_taskname//g"`
+fi
+
+if [[ $today -gt 0 ]]; then
+	task_name=`echo $task_name | sed "s/$today_taskname//g"`
+fi
+
+if [[ $time_check -gt 0 ]]; then
+	task_name=`echo $task_name | sed "s/$time_taskname//g"`
+fi
+
+if [[ $mon_day_check -gt 0 ]]; then
+	task_name=`echo $task_name | sed "s/$mon_day_taskname//g"`
+fi
+
+if [[ $abbrv_date_check -gt 0 ]]; then
+	task_name=`echo $task_name | sed "s/$abbrv_date_taskname//g"`
+fi
+
+if [[ $due_check -gt 0 ]]; then
+	task_name=`echo $task_name | sed "s/$due_taskname//g"`
+fi
+
+if [[ $num_date_check -gt 0 ]]; then
+	task_name=`echo $task_name | sed 's/[0-9]*\/[0-9]*//g'`
+fi
+
+echo "Final task name: "$task_name		
 echo "======================"
 
 osascript <<EOS
@@ -315,7 +401,7 @@ osascript <<EOS
 	end tell
 	
   tell front document of application "OmniFocus"
-	if "$my_context_check" < 1 then
+	if "$my_context_check" > 0 then
 	set theContext to "$my_context"
 	set MyContextArray to null
 	set MyContextArray to complete theContext as context maximum matches 1
