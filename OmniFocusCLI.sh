@@ -1,5 +1,5 @@
 #!/bin/sh 
-#  OmniFocusCLI v.1.1
+#  OmniFocusCLI v.1.1.1
 #  Created by Donald Southard aka @binaryghost on 2011-05-14
 
 #Declaration of my variables
@@ -204,15 +204,21 @@ echo "Start date result (#days): "$result_day
 #hidden feature for manual due date in this format: "d:#d" i.e. d:3d (for a 3 day due date)
 #This is the only format for due dates right now, who cares though because you should be using
 #START DATES!!! and a DAILY REVIEW!!! if not you need to GTD YO SHIT PLAYA!!
-due_num_days=`echo $* | sed -n 's/.*d:\(.*\)d.*/\1/p'`
-due_check=1
-due_taskname=`echo "d:"$due_num_days"d"`
-echo "days until due: "$due_num_days
+for i in "$@"
+do
+	due_formatted=`echo $i | tr A-Z a-z`
+	if [[ $due_formatted =~ d:[0-9]d ]] || [[ $due_formatted =~ d:[0-9][0-9]d ]]; then
+		due_num_days=`echo $i | sed -n 's/.*d:\(.*\)d.*/\1/p'`
+		due_check=1
+		due_taskname=`echo "d:"$due_num_days"d"`
+	fi
+done
 
 if [ -z $due_num_days ]
 then
 	due_num_days=0
 fi
+echo "days until due: "$due_num_days
 ddays=`echo ""$due_num_days"*$d" | bc`
 
 #Check for a start date of Today

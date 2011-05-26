@@ -4,22 +4,26 @@ AUTHOR:	Don Southard aka. @binaryghost
 
 CHANGELOG:
 
-	[ 5/26/2011 12:30:42PM version 1.1 ]
-	
-	I know this is a big jump in version numbers but I basically rewrote atleast half the code. 
-	
-	-OmniFocusCLI now reads in your root Contexts directly from OmniFocus in REALTIME! Change your contexts and OmniFocuCLI will still work! This is a major advancement. Contexts are no longer required to start with an @ symbol. Sub-contexts are still not supported but should be soon. This feature may break if OmniGroup ever changes the schema of their database so obviously there are no guarantees. It was also ONLY tested on a Mac App Store version of OmniFocus.
-	
-	-How the task name was originally created was garabage and I completely rewrote it so it is optimized and more intelligent. 
-	
-	-Misc bug fixes
+[ 5/26/2011 04:17:43PM version 1.1.1 ]
 
-	[ 5/24/2011 04:19:33PM version 1.0.2 ]
-	-detection for NULL tasks from the Terminal (Alfred doesn't let you anyway) to prevent blank tasks from being created
-	
-	[ 5/20/2011 03:02:41PM version 1.0.1]
-	-Fixed a bug with blank start dates setting "Today" value
-	-Added "Noon"/"noon" support
+-Fixed a bug in the hidden due date feature that I do not like. I'm going to officially support due dates eventually.
+
+[ 5/26/2011 12:30:42PM version 1.1 ]
+
+I know this is a big jump in version numbers but I basically rewrote atleast half the code. 
+
+-OmniFocusCLI now reads in your root Contexts directly from OmniFocus in REALTIME! Change your contexts and OmniFocuCLI will still work! This is a major advancement. Contexts are no longer required to start with an @ symbol. Sub-contexts are still not supported but should be soon. This feature may break if OmniGroup ever changes the schema of their database so obviously there are no guarantees. It was also ONLY tested on a Mac App Store version of OmniFocus.
+
+-How the task name was originally created was garabage and I completely rewrote it so it is optimized and more intelligent. 
+
+-Misc bug fixes
+
+[ 5/24/2011 04:19:33PM version 1.0.2 ]
+-detection for NULL tasks from the Terminal (Alfred doesn't let you anyway) to prevent blank tasks from being created
+
+[ 5/20/2011 03:02:41PM version 1.0.1]
+-Fixed a bug with blank start dates setting "Today" value
+-Added "Noon"/"noon" support
 
 
 INSTALL:
