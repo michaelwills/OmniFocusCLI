@@ -1,5 +1,5 @@
 #!/bin/sh 
-#  OmniFocusCLI v.1.1.1
+#  OmniFocusCLI v.1.2
 #  Created by Donald Southard aka @binaryghost on 2011-05-14
 
 #Declaration of my variables
@@ -9,6 +9,12 @@ then
 	echo "No task detected, please try again."
 	exit
 fi
+
+#
+#IMPORTANT - USER INPUT in ARRAY
+declare -a dueArray
+inputArray=($@)
+
 d=86400 #initialize d variable equal to number of seconds in 1 day.
 my_context_check=1 #initialize my_context variable
 noon_check=0 #initialize noon_check variable
@@ -20,6 +26,7 @@ mon_day_check=0
 num_date_check=0
 due_check=0
 abbrv_date_check=0
+due_num_taskname="§"
 today=0
 tomorrow=0
 hr=12
@@ -41,15 +48,60 @@ echo "---------------------"
 echo "::DIAGNOSTIC REPORT::"
 echo "---------------------"
 
+#hidden feature for manual due date in this format: "due #d" 
+#This is the only format for due dates right now, who cares though because you should be using
+#START DATES!!! and a DAILY REVIEW!!! if not you need to GTD YO SHIT PLAYA!!
+
+due_counter=0
+for i in "${inputArray[@]}"
+do
+	if [[ $i = "due" ]]; then
+		due_check=1
+		unset inputArray[$due_counter]
+		((due_counter++))
+		due_num_taskname=`echo ${inputArray[($due_counter)]}`
+		due_num_entry=`echo ${inputArray[($due_counter)]}`
+		if [[ $due_num_entry =~ ^[0-9]d ]] || [[ $due_num_entry =~ ^[0-9][0-9]d ]]; then
+			num_days=`echo $due_num_entry | tr -dc '[0-9]'`
+			temp_days=`echo ""$num_days"*$d" | bc`
+		else
+			temp_days=0
+		fi
+
+		if [[ $due_num_entry =~ ^[0-9]w ]] || [[ $due_num_entry =~ ^[0-9][0-9]w ]]; then
+			num_weeks=`echo $due_num_entry | tr -dc '[0-9]'`
+			temp_weeks=`echo "("$num_weeks"*7)*$d" | bc`
+		else
+			temp_weeks=0
+		fi
+
+		if [[ $due_num_entry =~ ^[0-9]m ]] || [[ $due_num_entry =~ ^[0-9][0-9]m ]]; then
+			num_monthz=`echo $due_num_entry | tr -dc '[0-9]'`
+			temp_monthz=`echo "("$num_monthz"*31)*$d" | bc`
+		else
+			temp_monthz=0	
+		fi
+		
+		unset inputArray[$due_counter]
+		break
+	else
+		((due_counter++))
+	fi
+done
+#calculate total number of days until due
+ddays=`echo "$temp_days" + "$temp_weeks" + "$temp_monthz" | bc`
+echo "Weeks until due: "$num_weeks
+echo "Days until due: "$num_days
+
 
 #Funtions for checking for a start date
 #First one checks for a start date in a #d format
-for i in "$@"
+for i in "${inputArray[@]}"
 do
 	if [[ $i =~ ^[0-9]d ]] || [[ $i =~ ^[0-9][0-9]d ]]; then
 		abbrv_date_check=1
 		abbrv_date_taskname=$i
-		num_days=`echo $@ | tr -dc '[0-9]'`
+		num_days=`echo $i | tr -dc '[0-9]'`
 		temp_days=`echo ""$num_days"*$d" | bc`
 	fi
 done
@@ -61,12 +113,12 @@ then
 fi
 
 #Test for number of weeks i.e. #w... 2w for 2 weeks
-for i in "$@"
+for i in "${inputArray[@]}"
 do
 	if [[ $i =~ ^[0-9]w ]] || [[ $i =~ ^[0-9][0-9]w ]]; then
 		abbrv_date_check=1
 		abbrv_date_taskname=$i
-		num_weeks=`echo $@ | tr -dc '[0-9]'`
+		num_weeks=`echo $i | tr -dc '[0-9]'`
 		temp_weeks=`echo "("$num_weeks"*7)*$d" | bc`
 	fi
 done
@@ -77,12 +129,12 @@ then
 fi
 
 #Test for number of months i.e. #m... 2m for 2 months
-for i in "$@"
+for i in "${inputArray[@]}"
 do
 	if [[ $i =~ ^[0-9]m ]] || [[ $i =~ ^[0-9][0-9]m ]]; then
 		abbrv_date_check=1
 		abbrv_date_taskname=$i
-		num_monthz=`echo $@ | tr -dc '[0-9]'`
+		num_monthz=`echo $i | tr -dc '[0-9]'`
 		temp_monthz=`echo "("$num_monthz"*31)*$d" | bc`
 	fi
 done
@@ -201,25 +253,6 @@ echo "Start check value (0/1): "$start_check
 echo "Start date result (#months in days): "$result_mon
 echo "Start date result (#days): "$result_day
 
-#hidden feature for manual due date in this format: "d:#d" i.e. d:3d (for a 3 day due date)
-#This is the only format for due dates right now, who cares though because you should be using
-#START DATES!!! and a DAILY REVIEW!!! if not you need to GTD YO SHIT PLAYA!!
-for i in "$@"
-do
-	due_formatted=`echo $i | tr A-Z a-z`
-	if [[ $due_formatted =~ d:[0-9]d ]] || [[ $due_formatted =~ d:[0-9][0-9]d ]]; then
-		due_num_days=`echo $i | sed -n 's/.*d:\(.*\)d.*/\1/p'`
-		due_check=1
-		due_taskname=`echo "d:"$due_num_days"d"`
-	fi
-done
-
-if [ -z $due_num_days ]
-then
-	due_num_days=0
-fi
-echo "days until due: "$due_num_days
-ddays=`echo ""$due_num_days"*$d" | bc`
 
 #Check for a start date of Today
 for i in "$@"
@@ -345,8 +378,8 @@ then
 fi
 
 #Rebuilt Code to construct the task name
-echo "Raw task name: "$task_name
 task_name=`echo $@`
+echo "Raw task name: "$task_name
 
 if [[ $my_context_check -gt 0 ]]; then
 	task_name=`echo $task_name | sed "s/$my_context//g"`
@@ -385,7 +418,7 @@ if [[ $abbrv_date_check -gt 0 ]]; then
 fi
 
 if [[ $due_check -gt 0 ]]; then
-	task_name=`echo $task_name | sed "s/$due_taskname//g"`
+	task_name=`echo $task_name | sed 's/[[:<:]]due[[:>:]]//g' | sed "s/$due_num_taskname//g"`
 fi
 
 if [[ $num_date_check -gt 0 ]]; then

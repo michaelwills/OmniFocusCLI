@@ -1,8 +1,15 @@
 NAME: OmniFocusCLI
-VERSION: 1.0.1
 AUTHOR:	Don Southard aka. @binaryghost
 
 CHANGELOG:
+
+**[ 5/27/2011 09:51:32AM version 1.2 ]**
+
+-Started adding DUE DATES!!! This was tricky because I didn't want to mess up start dates. Now you can just type "due" followed by a number of days, weeks or months!
+
+i.e. Mow the grass due 1w
+
+...or... Pull the weeds 2d @Home due 3d (creates a task with a start date of 2 days and a due date of 3 days, plus a context of @Home)
 
 [ 5/26/2011 04:17:43PM version 1.1.1 ]
 
