@@ -3,7 +3,28 @@ AUTHOR:	Don Southard aka. @binaryghost
 
 CHANGELOG:
 
-**[ 5/27/2011 09:51:32AM version 1.2 ]**
+**[ 6/06/2011 02:14:11PM version 1.3 ]**
+
+-Contexts are no longer case sensitive and it has sub-context support!
+
+-Added natural language context support
+*i.e. Call Joe Blow* (gives it a context of Phone)
+*i.e. Talk to Joe about blah blah* (gives a context of Agenda : Joe if one exists)
+*i.e. Mow grass at home* (gives it a context of Home)
+
+-Added Agenda support with sub-contexts (That means a context named "Agenda" with sub-contexts of names for people you need to speak with.)
+
+*i.e. Speak with Steve about new iPhone* (gives it a context of Agenda : Steve)
+
+-Removed the Diagnostic Report since its annoying if you are working in the terminal and it clears the screen you were working in and prints out a long useless report :)
+
+-Fixed parsing bug in due date code
+
+-Fixed a bug in my own Waiting for... context
+
+-Fixed a bug in the initial check for empty task
+
+[ 5/27/2011 09:51:32AM version 1.2 ]
 
 -Started adding DUE DATES!!! This was tricky because I didn't want to mess up start dates. Now you can just type "due" followed by a number of days, weeks or months!
 

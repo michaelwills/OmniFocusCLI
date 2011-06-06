@@ -1,32 +1,30 @@
 #!/bin/sh 
-#  OmniFocusCLI v.1.2
+#  OmniFocusCLI v.1.3
 #  Created by Donald Southard aka @binaryghost on 2011-05-14
 
-#Declaration of my variables
-iniCheck=`echo "$*"`
-if [ -z $iniCheck ]
-then
+#Check for empty task
+iniCheck=`echo $1`
+if [ -z $iniCheck ]; then
 	echo "No task detected, please try again."
 	exit
 fi
 
-#
-#IMPORTANT - USER INPUT in ARRAY
-declare -a dueArray
-inputArray=($@)
 
-d=86400 #initialize d variable equal to number of seconds in 1 day.
-my_context_check=1 #initialize my_context variable
-noon_check=0 #initialize noon_check variable
-weekday_check=0 #initialize weekday_check variable
-monthname_check=0 #initialize month_check variable
-start_check=0 #initialize start_check variable
-time_check=0 #initialize time_check variable
+#IMPORTANT - USER INPUT in ARRAY
+declare -a inputArray
+inputArray=($*)
+
+#Declaring my variables
+d=86400 
+my_context_check=1 
+noon_check=0 
+weekday_check=0 
+monthname_check=0 
+start_check=0
 mon_day_check=0
 num_date_check=0
 due_check=0
 abbrv_date_check=0
-due_num_taskname="§"
 today=0
 tomorrow=0
 hr=12
@@ -43,14 +41,100 @@ Abbrv_Mon_names=('jan' 'feb' 'mar' 'apr' 'may' 'jun' 'jul' 'aug' 'sept' 'oct' 'n
 Week_days=('sunday' 'monday' 'tuesday' 'wednesday' 'thursday' 'friday' 'saturday')
 Abbrv_days=('sun' 'mon' 'tues' 'wed' 'thurs' 'fri' 'sat' 'sun')
 
-echo `clear`
-echo "---------------------"
-echo "::DIAGNOSTIC REPORT::"
-echo "---------------------"
+#echo `clear`
+#echo "---------------------"
+#echo "::DIAGNOSTIC REPORT::"
+#echo "---------------------"
+#READ CONTEXTS FROM DB -- WORK IN PROGRESS
+#select name from context where parent is null
+declare -a contextArray
+declare -a agendaArray
+if [ ! -d ~/Library/Caches/com.omnigroup.OmniFocus.MacAppStore/ ]; then
+	contextArray=(`sqlite3 ~/Library/Caches/com.omnigroup.OmniFocus/OmniFocusDatabase2 'select name from contexts;'`)
+else
+	contextArray=(`sqlite3 ~/Library/Caches/com.omnigroup.OmniFocus.MacAppStore/OmniFocusDatabase2 'select name from context;'`)
+fi
 
-#hidden feature for manual due date in this format: "due #d" 
-#This is the only format for due dates right now, who cares though because you should be using
-#START DATES!!! and a DAILY REVIEW!!! if not you need to GTD YO SHIT PLAYA!!
+if [ ! -d ~/Library/Caches/com.omnigroup.OmniFocus.MacAppStore/ ]; then
+	agendaArray=(`sqlite3 ~/Library/Caches/com.omnigroup.OmniFocus/OmniFocusDatabase2 'select name from context where parent = ( select persistentIdentifier from context where name = "Agenda" );'`)
+else
+	agendaArray=(`sqlite3 ~/Library/Caches/com.omnigroup.OmniFocus.MacAppStore/OmniFocusDatabase2 'select name from context where parent = ( select persistentIdentifier from context where name = "Agenda" );'`)
+fi
+
+if [ ! -d ~/Library/Caches/com.omnigroup.OmniFocus.MacAppStore/ ]; then
+	phoneContext=(`sqlite3 ~/Library/Caches/com.omnigroup.OmniFocus/OmniFocusDatabase2 'select name from context where name = "@Phone" or name = "Phone";'`)
+else
+	phoneContext=(`sqlite3 ~/Library/Caches/com.omnigroup.OmniFocus.MacAppStore/OmniFocusDatabase2 'select name from context where name = "@Phone" or name = "Phone";'`)
+fi
+
+if [ ! -d ~/Library/Caches/com.omnigroup.OmniFocus.MacAppStore/ ]; then
+	homeContext=(`sqlite3 ~/Library/Caches/com.omnigroup.OmniFocus/OmniFocusDatabase2 'select name from context where name = "@Home" or name = "Home";'`)
+else
+	homeContext=(`sqlite3 ~/Library/Caches/com.omnigroup.OmniFocus.MacAppStore/OmniFocusDatabase2 'select name from context where name = "@Home" or name = "Home";'`)
+fi
+
+context_total=`echo ${#contextArray[*]}`
+agenda_total=`echo ${#agendaArray[*]}`
+agenda_used=0
+not_agenda=0
+input_counter=0
+call_check=0
+for i in "${inputArray[@]}"
+do
+		input_formatted=`echo $i | tr A-Z a-z`
+			for (( c=0;c<$context_total;c++ )); do
+			context_formatted=`echo ${contextArray[$c]} | tr A-Z a-z`
+				if [[ $input_formatted = $context_formatted ]] && [[ $input_formatted != "for" ]] && [[ $input_formatted != "from" ]]
+				then
+					my_context=${contextArray[$c]}
+					#Sub-array for comparing to agenda names so it doesn't delete people names from tasks
+					if [ "$agenda_total" -eq 0 ]; then
+						#If the "Agenda" context doesn't exsist, then skip the next loop and just remove context from task name.
+						unset inputArray[$input_counter]
+						if [ ${inputArray[($input_counter-1)]} == "at" ]; then
+							(( input_counter=$input_counter-1 ))
+							unset inputArray[$input_counter]
+						fi
+					else
+						for (( a=0;a<$agenda_total;a++ )); do
+							agenda_formatted=`echo ${agendaArray[$a]} | tr A-Z a-z`
+							if [[ ${contextArray[$c]} == ${agendaArray[$a]} ]]
+							then
+							agenda_used=`echo ${contextArray[$c]} | tr A-Z a-z`
+							else
+							not_agenda=1
+							fi
+						done
+					fi
+					#only remove context from array if is NOT an agenda. 
+					if [[ $not_agenda -eq 1 ]] && [[ $input_formatted != $agenda_used ]];then
+						unset inputArray[$input_counter]
+						if [ ${inputArray[($input_counter-1)]} == "at" ]; then
+							(( input_counter=$input_counter-1 ))
+							unset inputArray[$input_counter]
+						fi
+					fi
+				fi
+			done
+			if [[ $phoneContext ]] && [[ $input_formatted = "call" ]]; then
+				call_context=1
+			fi
+			if [[ $homeContext ]] && [[ -z $my_context ]] && [[ $input_formatted = "home" ]]; then
+				my_context=$homeContext
+			fi
+			((input_counter++))	
+done
+
+#echo "Context Check (0/1): "$my_context_check
+#echo "Context used: "$my_context
+if [[ $call_context -eq 1 ]]; then
+	my_context=$phoneContext
+fi
+
+if [ -z $my_context ]
+then
+	my_context_check=0
+fi
 
 due_counter=0
 for i in "${inputArray[@]}"
@@ -59,7 +143,6 @@ do
 		due_check=1
 		unset inputArray[$due_counter]
 		((due_counter++))
-		due_num_taskname=`echo ${inputArray[($due_counter)]}`
 		due_num_entry=`echo ${inputArray[($due_counter)]}`
 		if [[ $due_num_entry =~ ^[0-9]d ]] || [[ $due_num_entry =~ ^[0-9][0-9]d ]]; then
 			num_days=`echo $due_num_entry | tr -dc '[0-9]'`
@@ -83,15 +166,15 @@ do
 		fi
 		
 		unset inputArray[$due_counter]
+		#calculate total number of days until due
+		ddays=`echo "$temp_days" + "$temp_weeks" + "$temp_monthz" | bc`
 		break
 	else
 		((due_counter++))
 	fi
 done
-#calculate total number of days until due
-ddays=`echo "$temp_days" + "$temp_weeks" + "$temp_monthz" | bc`
-echo "Weeks until due: "$num_weeks
-echo "Days until due: "$num_days
+#echo "Weeks until due: "$num_weeks
+#echo "Days until due: "$num_days
 
 
 #Funtions for checking for a start date
@@ -145,8 +228,8 @@ then
 fi
 #add days entered to days from weeks entered
 sdays=`echo "$temp_days" + "$temp_weeks" + "$temp_monthz" | bc`
-echo "Weeks until started: "$num_weeks
-echo "Days until started: "$num_days
+#echo "Weeks until started: "$num_weeks
+#echo "Days until started: "$num_days
 
 
 
@@ -158,8 +241,8 @@ do
 		num_date_check=1
 		start_value_mon=`echo $i | sed 's/\/[0-9]*//'`
 		start_value_day=`echo $i | sed 's/[0-9]*\///'`
-		echo "Start value (month): "$start_value_mon
-		echo "Start value (day): "$start_value_day
+		#echo "Start value (month): "$start_value_mon
+		#echo "Start value (day): "$start_value_day
 		result_day=`echo "$start_value_day" | bc`
 		month_counter_max=`echo "("$start_value_mon"-1)" | bc`
 		day_counter=0
@@ -183,8 +266,8 @@ do
 			then
 				day_counter=`echo "("$day_counter"-1)" | bc`
 			fi
-		echo "Number of days from month inputed passed: "$day_counter
-		echo "Number of days from day inputed passed: "$result_day
+		#echo "Number of days from month inputed passed: "$day_counter
+		#echo "Number of days from day inputed passed: "$result_day
 		else
 			if [[ "$start_value_day" -gt $day_mon ]]; then
 				result_day=`echo ""$start_value_day"-$day_mon" | bc`
@@ -242,16 +325,16 @@ do
 		mon_day_check=1
 		mon_day_taskname=$i
 		start_value_day=`echo $i | sed 's/st*//' | sed 's/nd*//' | sed 's/rd*//' | sed 's/th*//'`
-		echo "Start value (day): "$start_value_day
+		#echo "Start value (day): "$start_value_day
 		result_day=`echo "("$start_value_day"-1)" | bc`
 		start_check=1
 	fi
 done
 
 
-echo "Start check value (0/1): "$start_check
-echo "Start date result (#months in days): "$result_mon
-echo "Start date result (#days): "$result_day
+#echo "Start check value (0/1): "$start_check
+#echo "Start date result (#months in days): "$result_mon
+#echo "Start date result (#days): "$result_day
 
 
 #Check for a start date of Today
@@ -263,7 +346,7 @@ do
 		today=1
 	fi
 done
-echo "Starts today? (0/1): "$today
+#echo "Starts today? (0/1): "$today
 
 #Check for a start date of Tomorrow
 for i in "$@"
@@ -274,7 +357,7 @@ do
 		tomorrow=1
 	fi
 done
-echo "Starts tomorrow? (0/1): "$tomorrow
+#echo "Starts tomorrow? (0/1): "$tomorrow
 
 #check for week day name as start value
 for i in "$@"
@@ -289,11 +372,11 @@ do
 			weekday_taskname=$i
 			if [[ $w -ge $day_week ]]; then
 				week_day_value=`echo ""$w"-$day_week" | bc`
-				echo "Week day value passed: "$week_day_value
+				#echo "Week day value passed: "$week_day_value
 				start_check=1
 			elif [[ $w -lt $day_week ]]; then
 				week_day_value=`echo "("$wd"-$day_week)" | bc`
-				echo "Week day value passed: "$week_day_value
+				#echo "Week day value passed: "$week_day_value
 				start_check=1
 			fi
 		fi
@@ -302,92 +385,66 @@ done
 
 
 #Find time #(am|pm) format and check for "noon"
-for i in "$@"
+input_counter=0
+for i in "${inputArray[@]}"
 do
 	noon_formatted=`echo $i | tr A-Z a-z`
 	if [[ $i =~ ^[0-9]am ]] ||  [[ $i =~ ^[0-9][0-9]am ]]; then
-		time_check=1
-		time_taskname=$i
 		time_value=`echo $i | sed 's/am//'`
+		unset inputArray[$input_counter]
 		start_check=1
 	elif [[ $i =~ ^[0-9]:[0-9][0-9]am ]] ||  [[ $i =~ ^[0-9][0-9]:[0-9][0-9]am ]]; then
-		time_check=1
-		time_taskname=$i
 		time_value=`echo $i | awk 'BEGIN { FS = ":" } ; { print $1}' | tr -dc '[0-9]'`
+		unset inputArray[$input_counter]
 		start_check=1
 	elif [[ $i =~ ^[0-9]pm ]] || [[ $i =~ ^[0-9][0-9]pm ]]; then
-		time_check=1
-		time_taskname=$i
 		time_value_pm=`echo $i | sed 's/pm//'`
 		time_value=`echo ""$time_value_pm"+$hr" | bc`
 		if [[ $time_value = 24 ]]; then
 			time_value=12
 		fi
+		unset inputArray[$input_counter]
 		start_check=1
 	elif [[ $i =~ ^[0-9]:[0-9][0-9]pm ]] ||  [[ $i =~ ^[0-9][0-9]:[0-9][0-9]pm ]]; then
-		time_check=1
-		time_taskname=$i
 		time_value_pm=`echo $i | awk 'BEGIN { FS = ":" } ; { print $1}' | tr -dc '[0-9]'`
 		time_value=`echo ""$time_value_pm"+$hr" | bc`
 		if [[ $time_value = 24 ]]; then
 			time_value=12
 		fi
+		unset inputArray[$input_counter]
 		start_check=1
 	elif [[ $noon_formatted =~ "noon" ]]; then
 		time_value=12
-		noon_check=1
-		noon_taskname=$i
 		start_check=1
+		unset inputArray[$input_counter]
 	fi
+	((input_counter++))
 done
-echo "Start date (hours): "$time_value
+#echo "Start date (hours): "$time_value
 
 #This on checks for a time : minutes
 for i in "$@"
 do
 	if [[ $i =~ ^[0-9]:[0-9][0-9](am|pm) ]] || [[ $i =~ ^[0-9][0-9]:[0-9][0-9](am|pm) ]]; then
 		minutes=`echo $i | awk 'BEGIN { FS = ":" } ; { print $2}' | tr -dc '[0-9]'`
-		echo "Start date (minutes): "$minutes
+		#echo "Start date (minutes): "$minutes
 		start_check=1
 	fi
 done
-echo "Start date (minutes): "$minutes
+#echo "Start date (minutes): "$minutes
 
-#READ CONTEXTS FROM DB -- WORK IN PROGRESS
-declare -a contextArray
-if [ ! -d ~/Library/Caches/com.omnigroup.OmniFocus.MacAppStore/ ]; then
-	contextArray=(`sqlite3 ~/Library/Caches/com.omnigroup.OmniFocus/OmniFocusDatabase2 'select name from context where parent is null;'`)
-else
-	contextArray=(`sqlite3 ~/Library/Caches/com.omnigroup.OmniFocus.MacAppStore/OmniFocusDatabase2 'select name from context where parent is null;'`)
-fi
-context_total=`echo ${#contextArray[*]}`
-for i in "$@"
-do
-		for (( c=0;c<$context_total;c++ )); do
-		if [[ $i = ${contextArray[$c]} ]]; then
-			my_context=$i
-		fi
-	done
-done
-
-echo "Context Check (0/1): "$my_context_check
-echo "Context used: "$my_context
-if [ -z $my_context ]
-then
-	my_context_check=0
-fi
 
 #Rebuilt Code to construct the task name
-task_name=`echo $@`
-echo "Raw task name: "$task_name
+task_name=${inputArray[@]}
+#echo "Raw task name: "$task_name
 
-if [[ $my_context_check -gt 0 ]]; then
-	task_name=`echo $task_name | sed "s/$my_context//g"`
-fi
+# if [[ $my_context_check -gt 0 ]]; then
+# 	task_name=`echo $task_name | sed "s/$input_context//g"`
+# fi
 
-if [[ $noon_check -gt 0 ]]; then
-	task_name=`echo $task_name | sed "s/$noon_taskname//g"`
-fi
+# if [[ $noon_check -gt 0 ]]; then
+# 	task_name=`echo $task_name | sed "s/$noon_taskname//g"`
+# fi
 
 if [[ $weekday_check -gt 0 ]]; then
 	task_name=`echo $task_name | sed "s/$weekday_taskname//g"`
@@ -405,9 +462,9 @@ if [[ $today -gt 0 ]]; then
 	task_name=`echo $task_name | sed "s/$today_taskname//g"`
 fi
 
-if [[ $time_check -gt 0 ]]; then
-	task_name=`echo $task_name | sed "s/$time_taskname//g"`
-fi
+# if [[ $time_check -gt 0 ]]; then
+# 	task_name=`echo $task_name | sed "s/$time_taskname//g"`
+# fi
 
 if [[ $mon_day_check -gt 0 ]]; then
 	task_name=`echo $task_name | sed "s/$mon_day_taskname//g"`
@@ -417,19 +474,14 @@ if [[ $abbrv_date_check -gt 0 ]]; then
 	task_name=`echo $task_name | sed "s/$abbrv_date_taskname//g"`
 fi
 
-if [[ $due_check -gt 0 ]]; then
-	task_name=`echo $task_name | sed 's/[[:<:]]due[[:>:]]//g' | sed "s/$due_num_taskname//g"`
-fi
-
 if [[ $num_date_check -gt 0 ]]; then
 	task_name=`echo $task_name | sed 's/[0-9]*\/[0-9]*//g'`
 fi
 
-echo "Final task name: "$task_name		
-echo "======================"
+#echo "Final task name: "$task_name		
+#echo "======================"
 
 osascript <<EOS
-	--Check if OF is running, if not then open it dumbass
 	tell application "System Events"
 	   count (every process whose name is "OmniFocus")
 		if result < 1 then
