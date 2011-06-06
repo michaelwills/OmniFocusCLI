@@ -1,4 +1,5 @@
 NAME: OmniFocusCLI
+
 AUTHOR:	Don Southard aka. @binaryghost
 
 CHANGELOG:
@@ -9,7 +10,9 @@ CHANGELOG:
 
 -Added natural language context support
 *i.e. Call Joe Blow* (gives it a context of Phone)
+
 *i.e. Talk to Joe about blah blah* (gives a context of Agenda : Joe if one exists)
+
 *i.e. Mow grass at home* (gives it a context of Home)
 
 -Added Agenda support with sub-contexts (That means a context named "Agenda" with sub-contexts of names for people you need to speak with.)
