@@ -4,6 +4,17 @@ AUTHOR:	Don Southard aka. @binaryghost
 
 CHANGELOG:
 
+**[ 6/17/2011 11:04:04AM version 1.4 ]**
+
+-Fixed major bug in Context support for Non-MAS version of OF.
+Thanks to Thierry for taking the time to submit the bug report!
+
+-Added a simple help printout if no task is submitted from CLI
+
+-Fixed misc. bugs and did random code cleanup. Hopefully I didn't break anything in the process :)
+
+
+
 **[ 6/06/2011 02:14:11PM version 1.3 ]**
 
 -Contexts are no longer case sensitive and it has sub-context support!

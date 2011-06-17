@@ -1,12 +1,20 @@
 #!/bin/sh 
-#  OmniFocusCLI v.1.3
-#  Created by Donald Southard aka @binaryghost on 2011-05-14
+#  OmniFocusCLI v.1.4
+#  Created by Donald Southard aka @binaryghost
+#  Last edited on 6/17/2011 11:06:26AM
 
 #Check for empty task
-iniCheck=`echo $1`
-if [ -z $iniCheck ]; then
-	echo "No task detected, please try again."
-	exit
+usage ()
+{
+     echo "OmniFocusCLI v1.4"
+     echo "	usage: omnifocuscli.sh [task with date and time info]"
+     echo "	Create an OmniFocus task using Natural Language Processing"
+}
+
+if [ $# -lt 1 ]
+then
+    usage
+    exit
 fi
 
 
@@ -14,7 +22,7 @@ fi
 declare -a inputArray
 inputArray=($*)
 
-#Declaring my variables
+#Global Variables
 d=86400 
 my_context_check=1 
 noon_check=0 
@@ -34,23 +42,19 @@ day_mon=`date +%d`	#find current day of the month
 day_week=`date +%w` #find current day of the week
 
 
-#Define my time/code saving arrays
+#Define Arrays
 Months=(31 28 31 30 31 30 31 31 30 31 30 31)
 Mon_names=('january' 'february' 'march' 'april' 'may' 'june' 'july' 'august' 'september' 'october' 'november' 'december')
 Abbrv_Mon_names=('jan' 'feb' 'mar' 'apr' 'may' 'jun' 'jul' 'aug' 'sept' 'oct' 'nov' 'dec')
 Week_days=('sunday' 'monday' 'tuesday' 'wednesday' 'thursday' 'friday' 'saturday')
 Abbrv_days=('sun' 'mon' 'tues' 'wed' 'thurs' 'fri' 'sat' 'sun')
 
-#echo `clear`
-#echo "---------------------"
-#echo "::DIAGNOSTIC REPORT::"
-#echo "---------------------"
+
 #READ CONTEXTS FROM DB -- WORK IN PROGRESS
-#select name from context where parent is null
 declare -a contextArray
 declare -a agendaArray
 if [ ! -d ~/Library/Caches/com.omnigroup.OmniFocus.MacAppStore/ ]; then
-	contextArray=(`sqlite3 ~/Library/Caches/com.omnigroup.OmniFocus/OmniFocusDatabase2 'select name from contexts;'`)
+	contextArray=(`sqlite3 ~/Library/Caches/com.omnigroup.OmniFocus/OmniFocusDatabase2 'select name from context;'`)
 else
 	contextArray=(`sqlite3 ~/Library/Caches/com.omnigroup.OmniFocus.MacAppStore/OmniFocusDatabase2 'select name from context;'`)
 fi
@@ -331,34 +335,6 @@ do
 	fi
 done
 
-
-#echo "Start check value (0/1): "$start_check
-#echo "Start date result (#months in days): "$result_mon
-#echo "Start date result (#days): "$result_day
-
-
-#Check for a start date of Today
-for i in "$@"
-do
-	today_formatted=`echo $i | tr A-Z a-z`
-	if [ $today_formatted = "today" ]; then
-		today_taskname=$i
-		today=1
-	fi
-done
-#echo "Starts today? (0/1): "$today
-
-#Check for a start date of Tomorrow
-for i in "$@"
-do
-	tom_formatted=`echo $i | tr A-Z a-z`
-	if [[ $tom_formatted = "tomorrow" ]] || [[ $i = "tom" ]]; then
-		tom_taskname=$i
-		tomorrow=1
-	fi
-done
-#echo "Starts tomorrow? (0/1): "$tomorrow
-
 #check for week day name as start value
 for i in "$@"
 do
@@ -433,18 +409,47 @@ do
 done
 #echo "Start date (minutes): "$minutes
 
+#Check for a start date of Today
+input_counter=0
+for i in "${inputArray[@]}"
+do
+	today_formatted=`echo $i | tr A-Z a-z`
+	if [ $today_formatted = "today" ]; then
+		unset inputArray[$input_counter]
+		today=1
+	fi
+	((input_counter++))
+done
+
+
+#Check for a start date of Tomorrow
+tom_counter=0
+for i in "${inputArray[@]}"
+do
+	tom_formatted=`echo $i | tr A-Z a-z`
+	if [[ $tom_formatted = "tomorrow" ]] || [[ $i = "tom" ]]; then
+		unset inputArray[$tom_counter]
+		tomorrow=1
+	fi
+	((tom_counter++))
+done
+
+
+#Check if for any reason the last word is at and remove if it is
+total=${#inputArray[*]}
+other_total=`echo "$total"-1 | bc`
+last_word=${inputArray[${total}]}
+other_last_word=${inputArray[($total-1)]}
+if [[ "$last_word" = "at" ]]; then
+	unset inputArray[$total]
+elif [[ "$other_last_word" = "at" ]];then
+	unset inputArray[$other_total]
+fi
+
+
 
 #Rebuilt Code to construct the task name
 task_name=${inputArray[@]}
-#echo "Raw task name: "$task_name
-
-# if [[ $my_context_check -gt 0 ]]; then
-# 	task_name=`echo $task_name | sed "s/$input_context//g"`
-# fi
-
-# if [[ $noon_check -gt 0 ]]; then
-# 	task_name=`echo $task_name | sed "s/$noon_taskname//g"`
-# fi
 
 if [[ $weekday_check -gt 0 ]]; then
 	task_name=`echo $task_name | sed "s/$weekday_taskname//g"`
@@ -453,18 +458,6 @@ fi
 if [[ $monthname_check -gt 0 ]]; then
 	task_name=`echo $task_name | sed "s/$monthname_taskname//g"`
 fi
-
-if [[ $tomorrow -gt 0 ]]; then
-	task_name=`echo $task_name | sed "s/$tom_taskname//g"`
-fi
-
-if [[ $today -gt 0 ]]; then
-	task_name=`echo $task_name | sed "s/$today_taskname//g"`
-fi
-
-# if [[ $time_check -gt 0 ]]; then
-# 	task_name=`echo $task_name | sed "s/$time_taskname//g"`
-# fi
 
 if [[ $mon_day_check -gt 0 ]]; then
 	task_name=`echo $task_name | sed "s/$mon_day_taskname//g"`
@@ -477,9 +470,6 @@ fi
 if [[ $num_date_check -gt 0 ]]; then
 	task_name=`echo $task_name | sed 's/[0-9]*\/[0-9]*//g'`
 fi
-
-#echo "Final task name: "$task_name		
-#echo "======================"
 
 osascript <<EOS
 	tell application "System Events"
